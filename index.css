@@ -1,0 +1,34 @@
+nav#mainNav {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.logo-icon {
+  height: 100%;
+  width: auto;
+  aspect-ratio: 1;
+  padding: 5px;
+}
+
+.brand-logo {
+  position: relative !important;
+}
+
+.header-contents {
+  display: flex;
+  height: 100%;
+}
+
+#header-links-desktop {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.nav-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.custom-logo {
+  font-size: 2rem;
+}

@@ -1,0 +1,157 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Natalia's TicTacToe (bare metal)</title>
+
+    <!-- Compiled and minified CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <link rel="stylesheet" href="index.css" />
+  </head>
+
+  <body>
+    <script>
+      const MAP_SIZE_COOKIE_NAME = "mapSize";
+
+      document.addEventListener("DOMContentLoaded", function () {
+        var elems = document.querySelectorAll(".sidenav");
+        console.log(
+          "Znalezione elementy z klasą MaterializeCSS .sidebar:",
+          elems
+        );
+        var instances = M.Sidenav.init(elems);
+
+        let playButton = document.querySelector("#play-button");
+        playButton.onclick = () => {
+          console.log(`Uruchamianie gry z rozmiarem: ${mapSizeInput.value}`);
+
+          window.location.href = `game.html?mapSize=${mapSizeInput.value}`;
+        };
+
+        // ustawienie nasłuchiwacza zmiany inputa
+        let mapSizeInput = document.querySelector("#map_size");
+        mapSizeInput.oninput = () => {
+          let value = Number(event.target.value);
+
+          // sprawdź czy value jest poprawna
+          if (!Number.isNaN(value) && value >= 2) {
+            // wartość jest poprawna
+            document.cookie = `${MAP_SIZE_COOKIE_NAME}=${value}`;
+            playButton.disabled = false;
+          } else {
+            // wartość nie jest poprawna
+            playButton.disabled = true;
+          }
+        };
+
+        // załadowanie ciastka z ostatnią wartością mapSize
+        let lastMapSize = null;
+        for (const cookie of document.cookie.split("; ")) {
+          //   let keyValue = cookie.split("="),
+          //     key = keyValue[0],
+          //     value = keyValue[1];
+          let [key, value] = cookie.split("=");
+
+          if (key === MAP_SIZE_COOKIE_NAME) {
+            lastMapSize = Number(value);
+          }
+        }
+        console.log(
+          `Załadowano ostatnio zapisany rozmiar mapy: ${lastMapSize}`
+        );
+
+        if (lastMapSize != null) {
+          mapSizeInput.value = lastMapSize;
+        }
+      });
+    </script>
+
+    <nav id="mainNav">
+      <div class="nav-wrapper">
+        <a href="#" data-target="slide-out" class="sidenav-trigger"
+          ><i class="material-icons">menu</i></a
+        >
+
+        <div class="header-contents">
+          <img class="hide-on-small logo-icon" src="img/ic_launcher.png" />
+        </div>
+
+        <a href="#" class="custom-logo">Natalia's TicTacToe (bare metal)</a>
+
+        <ul id="header-links-desktop" class="right hide-on-med-and-down">
+          <li>
+            <a href="https://github.com/xintre" target="_blank" rel="noopener"
+              >GitHub</a
+            >
+          </li>
+          <li>
+            <a href="https://nataliarozga.me" target="_blank" rel="noopener"
+              >My website</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <ul id="slide-out" class="sidenav">
+      <li>
+        <div class="user-view">
+          <div class="background">
+            <img
+              src="https://free-images.com/sm/03a7/mount_merapi_volcano_indonesia.jpg"
+            />
+          </div>
+          <a href="#user"><img class="circle" src="img/ic_launcher.png" /></a>
+          <span class="white-text name">Natalia's TicTacToe (bare metal)</span>
+        </div>
+      </li>
+
+      <li>
+        <a href="https://github.com/xintre" target="_blank" rel="noopener"
+          >GitHub</a
+        >
+      </li>
+      <li>
+        <a href="https://nataliarozga.me" target="_blank" rel="noopener"
+          >My website</a
+        >
+      </li>
+    </ul>
+
+    <main id="menuContainer" class="container">
+      <h3>Natalia's bare metal 🛠️ TicTacToe game</h3>
+      <h4>in pure JS, CSS & HTML</h4>
+
+      <br />
+      <br />
+
+      <div class="row">
+        <div class="input-field col s12 m6">
+          <i class="material-icons prefix">casino</i>
+          <input value="3" id="map_size" type="number" min="2" />
+          <label class="active" for="map_size">Map size</label>
+        </div>
+
+        <button
+          id="play-button"
+          class="btn waves-effect waves-light col s12 m6 l2 offset-l2"
+          type="submit"
+          name="action"
+        >
+          Play!
+          <i class="material-icons right">sports_esports</i>
+        </button>
+      </div>
+    </main>
+  </body>
+</html>
