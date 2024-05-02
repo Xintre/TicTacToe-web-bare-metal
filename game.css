@@ -1,0 +1,36 @@
+#gameContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: 90vh;
+  justify-content: center;
+}
+
+.cell {
+  display: flex;
+  background-color: lightblue;
+  /* flex: 1; */
+  border-radius: 45px;
+  justify-content: center;
+  align-items: center;
+}
+
+.cell-text {
+  color: black !important;
+  font-weight: 600;
+}
+
+.row-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+}
+
+#game {
+  display: flex;
+  max-height: 90vh;
+  height: 100%;
+  flex-direction: row;
+}

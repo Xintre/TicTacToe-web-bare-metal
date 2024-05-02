@@ -2,6 +2,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Natalia's TicTacToe (bare metal)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Compiled and minified CSS -->
     <link
@@ -13,24 +14,311 @@
       rel="stylesheet"
     />
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/immutable/4.3.5/immutable.min.js"></script>
+
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
     <link rel="stylesheet" href="index.css" />
+    <link rel="stylesheet" href="game.css" />
   </head>
 
   <body>
     <script>
       const SEARCH_PARAM_MAP_SIZE_NAME = "mapSize";
+      let mapState = []; // key - "x" or "o", value - pair of indices; do sprawdzenia wygranej potem
+
+      function createRange(
+        start,
+        stop,
+        { startExclusive = false, endExclusive = true }
+      ) {
+        let list = [];
+        for (
+          let i = startExclusive ? start + 1 : start;
+          i < (endExclusive ? stop : stop + 1);
+          i++
+        ) {
+          list.push(i);
+        }
+
+        return list;
+      }
+
+      function finishGameIfApplicable(mapSize) {
+        let allWinningIndices = new Immutable.Set(); // note: there may even be an edge case when two different conditions win at once!
+
+        // check if any row is complete
+        var anyRowComplete = false;
+        for (let rowIndex = 0; rowIndex < mapSize; rowIndex++) {
+          let winningRowIndices = new Immutable.Set();
+          var areAllColumnsInThisRowEqual = true;
+
+          // the first cell
+          let referenceCell = mapState[rowIndex][0];
+          // columnLoop@
+          for (let colIndex = 0; colIndex < mapSize; colIndex++) {
+            let cell = mapState[rowIndex][colIndex];
+            if (cell != referenceCell || cell == "") {
+              areAllColumnsInThisRowEqual = false;
+              winningRowIndices.clear();
+              break;
+            } else {
+              winningRowIndices = winningRowIndices.add(
+                new Immutable.Map({ row: rowIndex, col: colIndex })
+              );
+            }
+          }
+
+          if (areAllColumnsInThisRowEqual) {
+            anyRowComplete = true;
+            allWinningIndices = allWinningIndices.union(winningRowIndices);
+            break;
+          }
+        }
+
+        // check if any column is complete
+        var anyColumnComplete = false;
+        // columnLoop@
+        for (let colIndex = 0; colIndex < mapSize; colIndex++) {
+          let winningColIndices = new Immutable.Set();
+          var areAllRowsInThisColumnEqual = true;
+
+          // the first cell
+          let referenceCell = mapState[0][colIndex];
+
+          // rowLoop@
+          for (let rowIndex = 0; rowIndex < mapSize; rowIndex++) {
+            let cell = mapState[rowIndex][colIndex];
+            if (cell != referenceCell || cell == "") {
+              areAllRowsInThisColumnEqual = false;
+              winningColIndices.clear();
+              break;
+            } else {
+              winningColIndices = winningColIndices.add(
+                new Immutable.Map({ row: rowIndex, col: colIndex })
+              );
+            }
+          }
+
+          if (areAllRowsInThisColumnEqual) {
+            anyColumnComplete = true;
+            allWinningIndices = allWinningIndices.union(winningColIndices);
+          }
+        }
+
+        // check if any diagonal is complete
+        var leftDiagonalComplete = true;
+        let winningDiagLIndices = new Immutable.Set();
+
+        leftDiagonalLoop: for (let i = 0; i < mapSize; i++) {
+          var areAllColumnsInThisDiagEqual = true;
+          let cell = mapState[i][i];
+          if (cell != mapState[0][0] || cell == "") {
+            leftDiagonalComplete = false;
+            winningDiagLIndices.clear();
+            break leftDiagonalLoop;
+          } else {
+            winningDiagLIndices = winningDiagLIndices.add(
+              new Immutable.Map({ row: i, col: i })
+            );
+          }
+        }
+
+        if (leftDiagonalComplete) {
+          allWinningIndices = allWinningIndices.union(winningDiagLIndices);
+        }
+
+        var rightDiagonalComplete = true;
+        let winningDiagRIndices = new Immutable.Set();
+        let rightDiagRowIndicesToLoop = createRange(0, mapSize, {
+          endExclusive: true,
+        });
+        let rightDiagColIndicesToLoop = createRange(0, mapSize, {
+          endExclusive: true,
+        }).reverse();
+
+        rightDiagonalLoop: for (let i of rightDiagRowIndicesToLoop) {
+          let rowIndex = rightDiagRowIndicesToLoop[i];
+          let colIndex = rightDiagColIndicesToLoop[i];
+          // the first cell
+          let referenceCell = mapState[0][mapSize - 1];
+
+          let cell = mapState[rowIndex][colIndex];
+          if (cell != referenceCell || cell == "") {
+            rightDiagonalComplete = false;
+            winningDiagRIndices.clear();
+            break rightDiagonalLoop;
+          } else {
+            winningDiagRIndices = winningDiagRIndices.add(
+              new Immutable.Map({ row: rowIndex, col: colIndex })
+            );
+          }
+        }
+        if (rightDiagonalComplete) {
+          allWinningIndices = allWinningIndices.union(winningDiagRIndices);
+        }
+
+        // check if we have a winner or the game is over with a draw
+        if (
+          anyRowComplete ||
+          anyColumnComplete ||
+          leftDiagonalComplete ||
+          rightDiagonalComplete
+        ) {
+          let winningIndices = allWinningIndices; //.toList()
+          let someWinningIndices = winningIndices.first();
+
+          let row = someWinningIndices.get("row");
+          let col = someWinningIndices.get("col");
+          let gameWinner = mapState[row][col];
+
+          navigator.vibrate(200);
+          setTimeout(() => {
+            navigator.vibrate(350);
+
+            setTimeout(() => {
+              navigator.vibrate(200);
+            }, 200);
+          }, 400);
+
+          console.log(`Winning indicies: ${winningIndices}`);
+          M.toast({
+            html: `Game finished - ${gameWinner}'s won!`,
+            displayLength: 8000,
+          });
+
+          return allWinningIndices;
+        } else {
+          let allCellsFilled = mapState.flat().every((cell) => {
+            cell != "";
+          });
+
+          if (allCellsFilled) {
+            window.navigator.vibrate(700);
+
+            M.toast({ html: "Game finished - it's a draw!" });
+
+            return new Immutable.Set();
+          }
+        }
+
+        return null;
+      }
+
+      function prepareMap(bInitializeMapState, gameContainer, replayButton) {
+        if (bInitializeMapState) {
+          replayButton.classList.remove("pulse");
+          mapState = [];
+          userTurn = "a";
+        }
+
+        let cellWidth =
+          Math.min(gameContainer.clientWidth, gameContainer.clientHeight) /
+            mapSize -
+          20;
+
+        gameContainer.innerHTML = "";
+
+        for (let r = 0; r < mapSize; r++) {
+          let rowArr = [];
+          let rowContainer = document.createElement("div");
+          rowContainer.className = "row-container";
+
+          for (let c = 0; c < mapSize; c++) {
+            let cell = document.createElement("button");
+
+            cell.id = `ttt-cell-${r}-${c}`;
+            cell.className = "cell btn waves-effect waves-light";
+            cell.style.width = cellWidth;
+            cell.style.height = cellWidth;
+
+            let text = document.createElement("span");
+            text.className = "cell-text";
+            text.style.fontSize = `${(2 / 3) * cellWidth}px`;
+            if (!bInitializeMapState) {
+              text.textContent = mapState[r][c];
+            }
+            cell.appendChild(text);
+
+            cell.onclick = () => {
+              // if cell is not empty, then do not do anything
+              if (mapState[r][c] != "") return;
+
+              const newValue = userTurn === "a" ? "❌" : "⭕";
+              mapState[r][c] = newValue;
+              text.textContent = newValue;
+
+              cell.disabled = true;
+
+              if (userTurn == "a") {
+                userTurn = "b";
+              } else {
+                userTurn = "a";
+              }
+
+              let allWinningIndices = finishGameIfApplicable(mapSize);
+
+              if (allWinningIndices !== null) {
+                for (let r = 0; r < mapSize; r++) {
+                  for (let c = 0; c < mapSize; c++) {
+                    let cellButton = document.querySelector(
+                      `#ttt-cell-${r}-${c}`
+                    );
+
+                    if (
+                      allWinningIndices.has(
+                        new Immutable.Map({ row: r, col: c })
+                      )
+                    ) {
+                      cellButton.style.setProperty(
+                        "background-color",
+                        "yellow",
+                        "important"
+                      );
+                    }
+                    cellButton.disabled = true;
+                  }
+                }
+
+                replayButton.classList.add("pulse");
+              }
+            };
+
+            rowContainer.appendChild(cell);
+            if (bInitializeMapState) rowArr.push("");
+          }
+
+          gameContainer.appendChild(rowContainer);
+
+          if (bInitializeMapState) mapState.push(rowArr);
+        }
+      }
+
+      let params = new URLSearchParams(window.location.search);
+      if (!params.has(SEARCH_PARAM_MAP_SIZE_NAME)) {
+        alert(
+          "Map size was not passed in the search term of window.location - redirecting to game menu"
+        );
+        window.location.href = "index.html";
+      }
+
+      let mapSize = Number(params.get(SEARCH_PARAM_MAP_SIZE_NAME));
+      let userTurn = "a";
 
       document.addEventListener("DOMContentLoaded", function () {
-        let params = new URLSearchParams(window.location.search);
-        if (!params.has(SEARCH_PARAM_MAP_SIZE_NAME)) {
-          alert(
-            "Map size was not passed in the search term of window.location - redirecting to game menu"
-          );
-          window.location.href = "index.html";
-        }
+        console.log(`Rozmiar mapy jest ustawiony na ${mapSize}`);
+
+        let gameContainer = document.querySelector("#gameContainer");
+        let replayButton = document.querySelector("#replayButton");
+
+        window.addEventListener("resize", (event) => {
+          prepareMap(false, gameContainer, replayButton);
+          console.log("Rozmiar okna zmienił się - re-renderowanie mapy");
+        });
+
+        // initialize map & render cells
+        prepareMap(true, gameContainer, replayButton);
       });
     </script>
 
@@ -40,10 +328,33 @@
           <img class="hide-on-small logo-icon" src="img/ic_launcher.png" />
         </div>
 
-        <a href="#" class="custom-logo">Natalia's TicTacToe (bare metal)</a>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            gap: 1rem;
+          "
+        >
+          <a
+            class="btn-floating btn-large waves-effect waves-light pink"
+            onclick="window.location.href = 'index.html'"
+            ><i class="material-icons">settings</i></a
+          >
+          <a
+            id="replayButton"
+            class="btn-floating btn-large waves-effect waves-light pink"
+            onclick="prepareMap(true, gameContainer, replayButton)"
+            ><i class="material-icons">replay</i></a
+          >
+        </div>
+
+        <a href="#" class="custom-logo"> Natalia's TicTacToe (bare metal)</a>
       </div>
     </nav>
 
-    <main id="gameContainer" class="container"></main>
+    <main id="game">
+      <div id="gameContainer" class="container"></div>
+    </main>
   </body>
 </html>
