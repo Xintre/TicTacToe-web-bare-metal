@@ -1,5 +1,7 @@
 # Bare Metal React TicTacToe
 
+📣🎉 Live demo: https://xintre.github.io/TicTacToe-web-bare-metal
+
 |                         Responsive menu                          |      Responsive map <br/> with winning sequence detection       |
 | :--------------------------------------------------------------: | :-------------------------------------------------------------: |
 |    <img style="width:300px" src="./img/screenshot-menu.jpg">     | <img style="width:300px" src="./img/screenshot-game-won-1.png"> |
@@ -25,4 +27,4 @@ This project is just a port of my original implementation of the [TicTacToe Jetp
 
 ## Demo
 
-You can view the live demo on [my server here](https://nataliarozga.me/bare-metal-ttt).
+You can view the [live demo here](https://xintre.github.io/TicTacToe-web-bare-metal).
